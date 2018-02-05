@@ -1,6 +1,4 @@
 
-
-
 import math
 import config
 import numpy as np
@@ -93,14 +91,16 @@ xMax = 0;
 #print(config.Ef_v);
 #print(probabilityX);
 
-for index in range(config.numCodeWords):
-    for k in range(config.factorGraph.shape[0]):
-        for j in range(0,config.factorGraph.shape[1]):
+
+for k in range(config.factorGraph.shape[0]):
+    for j in range(0,config.factorGraph.shape[1]):
+        for index in range(config.numCodeWords):
+            print(k,j,index);
             config.Ef_v[k,j] = updateEf_v(k,j);
 
     #print(config.Ef_v);
     for j in range(config.factorGraph.shape[1]):
-        for k in range(0,config.factorGraph.shape[0]):
+        for k in range(config.factorGraph.shape[0]):
             config.Ev_f[k,j] = productSequencef_v(config.factorGraph,k,j);
         config.Ev_f[:,j] = normalize(config.Ev_f[:,j]);
         config.Ev_f[:,j] *= config.probabilityX[j];

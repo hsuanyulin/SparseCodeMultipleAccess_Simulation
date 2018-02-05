@@ -1,5 +1,5 @@
 import numpy as np
-import codebook64 as CODEBOOK
+import codebook64 as CODEBOOK64
 
 
 def constant(f):
@@ -12,13 +12,15 @@ def constant(f):
 class _Input(object):
     @constant
     def inputSize():
-        return 8;
+        return 2;
 
 INPUT = _Input();
 
 def inputSize():
     return INPUT.inputSize;
 
-userInput = np.zeros( shape = (CODEBOOK.userNum(),INPUT.inputSize))
-userCodewords = np.zeros( shape=(CODEBOOK.userNum(),int(INPUT.inputSize/CODEBOOK.codewordBits()),CODEBOOK.codeWordSize() ),dtype=np.complex_)
-finalInput = np.zeros( shape = (int(INPUT.inputSize/CODEBOOK.codewordBits()),CODEBOOK.codeWordSize() ),dtype=np.complex_)
+userInput = np.zeros( shape = (CODEBOOK64.userNum(),INPUT.inputSize))
+userSymbols = np.zeros( shape=(CODEBOOK64.userNum(),int(INPUT.inputSize/CODEBOOK64.codewordBits())),dtype = np.integer)
+userCodewords = np.zeros( shape=(CODEBOOK64.userNum(),int(INPUT.inputSize/CODEBOOK64.codewordBits()),CODEBOOK64.codeWordSize() ),dtype=np.complex_)
+
+finalInput = np.zeros( shape = (int(INPUT.inputSize/CODEBOOK64.codewordBits()),CODEBOOK64.codeWordSize() ),dtype=np.complex_)

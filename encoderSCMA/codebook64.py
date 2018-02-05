@@ -1,3 +1,4 @@
+
 import numpy as np
 #plot
 import matplotlib.pyplot as plt
@@ -60,13 +61,16 @@ CODEBOOK = _Codebok();
 def printCodebooks():
     CODEBOOK.printConstellation();
 
-def getCodewords(userNum,symbol):
-    return CODEBOOK.USERS[userNum][:,symbol];
+def getCodeword(userNum,symbol):
+    codewords = CODEBOOK.USERS[userNum];
+    codeword = codewords[:,symbol]
+    return codeword;
 
 def codeWordSize():
     return CODEBOOK.USERS[1].shape[1];
 
 def codewordBits():
     return int(math.log(codeWordSize(), 2));
+
 def userNum():
     return 6;
