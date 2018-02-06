@@ -16,6 +16,8 @@ for i in range(5):
     decoderSCMA.iterativeMPA(1);
     decoderSCMA.estimateSymbol();
     difference = 0;
+    #print(np.transpose(config.EstimatedSymbols));
+    #print(np.transpose(encoderConfig.userSymbols));
     for ele in np.absolute(config.EstimatedSymbols-encoderConfig.userSymbols):
         difference += ele;
     print(i,difference);

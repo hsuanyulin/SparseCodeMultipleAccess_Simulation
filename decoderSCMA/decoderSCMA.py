@@ -7,22 +7,22 @@ import numpy as np
 
 class _DecoderHelper():
 
-    def getMessage(self, k, codewords):
+    def getMessage(self, k, j,codewords):
         eta_k = config.factorGraph[k];
         sigma_x = 0;
         for i, vNode in enumerate(eta_k):
             if vNode == 1:
                 #print("codewords",CODEBOOK.getCodeword(i+1, codewords[i])[k]);
                 sigma_x += CODEBOOK.getCodeword(i+1, codewords[i])[k];
-        return np.exp(-1/(config.sigma**2)*((config.resourceLayer[k]-sigma_x)**2))
+        dividend = config.resourceLayer[k]-sigma_x;
+        return np.exp(-(dividend*dividend.conjugate())/(config.sigma**2)).real
 
-    def productSequencev_f(self, k,j,codewords):
+    def productSequencev_f(self, k, j, codewords):
         eta_k = config.factorGraph[k];
         pi_Ev_f = 1;
         for i, vNode in enumerate(eta_k):
             if vNode == 1 and i != j:
-                symbol = codewords[i].astype(int);
-                pi_Ev_f *= config.Ev_f[k, i, symbol];
+                pi_Ev_f *= config.Ev_f[k, i, codewords[i].astype(int)];
         return pi_Ev_f;
 
     def getEf_v(self, k, j, cw):
@@ -30,7 +30,7 @@ class _DecoderHelper():
         if eta_k[j] != 1:
             return 0;
         update = 0;
-        codewords = np.empty(shape=(CODEBOOK.userNum(),1),dtype=np.integer);
+        codewords = np.zeros(shape=(CODEBOOK.userNum(),1),dtype=np.integer);
         index_A = None;
         index_B = None;
 
@@ -47,13 +47,20 @@ class _DecoderHelper():
                     codewords[i] = 0;
         while codewords[index_A] < 4:
             while codewords[index_B] < 4:
-                message = self.getMessage(k, codewords);
+                message = self.getMessage(k, j,codewords);
                 product = self.productSequencev_f(k,j,codewords);
                 update += message*product;
                 codewords[index_B] += 1;
             codewords[index_B] = 0;
             codewords[index_A] += 1;
 
+        #difference = np.absolute(codewords[index_A]-encoderConfig.userSymbols[index_A]);
+        #difference += np.absolute(codewords[index_B]-encoderConfig.userSymbols[index_B]);
+        #difference += np.absolute(codewords[j]-encoderConfig.userSymbols[j]);
+        #if difference > 7 or difference < 2:
+
+        #print("codewords-userSymbols",np.absolute(codewords[j]-encoderConfig.userSymbols[j]));
+        #print("update",update);
         #print(encoderConfig.userSymbols[j],cw,np.abs(update))
         if update.any():
             return update[0];
@@ -127,7 +134,8 @@ def messagePassing():
     for j in range(config.factorGraph.shape[1]):
         for k in range(config.factorGraph.shape[0]):
             config.Ev_f[k,j,:] = DECODERHELPER.getEv_f(k,j);
-            #print("final",k,j,index,config.Ev_f[k,j,:]);
+            #print("userSymbols",encoderConfig.userSymbols[j]);
+            #print("final",k,j,config.Ev_f[k,j,:]);
 def iterativeMPA(iteration):
     for i in range(iteration):
         messagePassing();
