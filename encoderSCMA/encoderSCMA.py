@@ -3,7 +3,7 @@ import codebook64 as CODEBOOK
 import encoderConfig
 
 
-#CODEBOOK.printCodebooks();
+
 
 
 def bin2dec(binary):
