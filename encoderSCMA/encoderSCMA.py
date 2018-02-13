@@ -4,6 +4,11 @@ import encoderConfig
 
 
 
+def setCodebook(num):
+    if num == 1:
+        CODEBOOK.setCodebook(1);
+    elif num == 2:
+        CODEBOOK.setCodebook(2);
 
 
 def bin2dec(binary):
@@ -14,7 +19,7 @@ def randomInputGenerator():
     #print(encoderConfig.userInput);
     for i in range(CODEBOOK.userNum()):
         encoderConfig.userInput[i] = np.random.randint(2, size=encoderConfig.inputSize());
-    #print(encoderConfig.userInput);
+    #print("users' input",encoderConfig.userInput);
 
 def array2int(array):
     final = 0;
@@ -23,6 +28,7 @@ def array2int(array):
     return final;
 
 def bin2codewords(userBinaries):
+    encoderConfig.finalInput = np.zeros( shape= encoderConfig.finalInput.shape, dtype = np.complex_);
     for i in range(userBinaries.shape[0]):
         userBin = userBinaries[i];
         seq = 0;
@@ -37,8 +43,8 @@ def bin2codewords(userBinaries):
             #trim the used one
             userBin = userBin[CODEBOOK.codewordBits():];
             seq += 1;
-        #print(encoderConfig.userSymbols[i]);
-    #print(encoderConfig.finalInput);
+    #print("users' symbol",encoderConfig.userSymbols);
+    #print("users' final input",encoderConfig.finalInput);
 
 
 

@@ -1,7 +1,7 @@
 import numpy as np
 
 
-sigma = 0.5;
+sigma = 0.25;
 numCodeWords = 4;
 
 userLayer = np.array([0,0,0,0,0,1]);

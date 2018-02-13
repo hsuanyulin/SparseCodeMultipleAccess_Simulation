@@ -3,8 +3,6 @@ import numpy as np
 #plot
 import matplotlib.pyplot as plt
 #factorGraph
-import sys
-sys.path.append('../')
 import config
 import math
 import itertools
@@ -17,7 +15,7 @@ def constant(f):
         return f()
     return property(fget, fset)
 
-class _Codebok(object):
+class _Codebook(object):
     @constant
     def USER1():
         return np.array([[0.7851, -0.2243, 0.2243, -0.7851], [0, 0, 0, 0], [-0.1815-0.1318j, -0.6351-0.4615j, 0.6351+0.4615j, 0.1815+0.1318j], [0, 0, 0, 0]]);
@@ -87,25 +85,25 @@ class _Codebok(object):
 
 
 
-class _Codebok2(object):
+class _Codebook2(object):
     @constant
     def USER1():
-        return np.array([[-1, 0, 0, 1], [0, 0, 0, 0], [0, -0.5-0.8660254j, 0.5+0.8660254j, 0], [0, 0, 0, 0]]);
+        return np.array([[0.7851, 0, 0, -0.7851], [0, 0, 0, 0], [0, -0.6351-0.4615j, 0.6351+0.4615j, 0], [0, 0, 0, 0]]);
     @constant
     def USER2():
-        return np.array([[0, 0, 0, 0], [0, -0.5-0.8660254j, 0.5+0.8660254j, 0], [0, 0, 0, 0], [1,0,0, 1]]);
+        return np.array([[0, 0, 0, 0], [0, -0.6351-0.4615j, 0.6351+0.4615j, 0], [0, 0, 0, 0], [0.7851, 0, 0, -0.7851]]);
     @constant
     def USER3():
-        return np.array([[ 0.5-0.8660254j, 0, 0,  -0.5+0.8660254j], [0,  0.5-0.8660254j,  -0.5+0.8660254j, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
+        return np.array([[-0.6351+0.4615j, 0, 0, 0.6351-0.4615j], [0, 0.4873-0.6156j, -0.4873-0.6156j, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
     @constant
     def USER4():
-        return np.array([[0, 0, 0, 0], [0, 0, 0, 0], [ -1, 0, 0, 1], [0, 1j, -1j, 0]]);
+        return np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0.7851, 0, 0, -0.7851], [0, -0.0193-0.7848j, 0.0193+0.7848j, 0]]);
     @constant
     def USER5():
-        return np.array([[-1j, 0, 0, 1j], [0, 0, 0, 0], [0, 0, 0, 0], [0,  0.5-0.8660254j,  -0.5+0.8660254j, 0]]);
+        return np.array([[0, -0.0193-0.7848j, 0.0193+0.7848j, 0], [0, 0, 0, 0], [0, 0, 0, 0], [-0.6351+0.4615j, 0, 0, 0.6351-0.4615j]]);
     @constant
     def USER6():
-        return np.array([[0, 0, 0, 0], [-1, 0, 0, 1], [0,  0.5-0.8660254j,  -0.5+0.8660254j, 0], [0, 0, 0, 0]]);
+        return np.array([[0, 0, 0, 0], [0.7851, 0, 0, -0.7851], [0, 0.4873-0.6156j, -0.4873+0.6156j, 0], [0, 0, 0, 0]]);
 
     USERS = {1 : USER1.__get__(object),
                2 : USER2.__get__(object),
@@ -156,7 +154,12 @@ class _Codebok2(object):
         plt.show()
 
 
-CODEBOOK = _Codebok();
+CODEBOOK = _Codebook();
+def setCodebook(num):
+    if num == 1:
+        CODEBOOK = _Codebook();
+    elif num == 2:
+        CODEBOOK = _Codebook2();
 def printCodebooks():
     CODEBOOK.printConstellation();
 

@@ -15,7 +15,7 @@ class _DecoderHelper():
                 #print("codewords",CODEBOOK.getCodeword(i+1, codewords[i])[k]);
                 sigma_x += CODEBOOK.getCodeword(i+1, codewords[i])[k];
         dividend = config.resourceLayer[k]-sigma_x;
-        return np.exp(-(dividend*dividend.conjugate())/(config.sigma**2)).real
+        return np.exp(-(dividend*dividend.conjugate())/(config.sigma**2))
 
     def productSequencev_f(self, k, j, codewords):
         eta_k = config.factorGraph[k];
