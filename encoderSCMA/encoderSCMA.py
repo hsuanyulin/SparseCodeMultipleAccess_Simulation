@@ -1,14 +1,20 @@
 import numpy as np
-import codebook64 as CODEBOOK
+import codebook64 as CODEBOOK1
+import codebook3 as CODEBOOK3
+import codebook2 as CODEBOOK2
 import encoderConfig
 
 
+CODEBOOK = CODEBOOK1;
 
 def setCodebook(num):
+    global CODEBOOK
     if num == 1:
-        CODEBOOK.setCodebook(1);
+        CODEBOOK = CODEBOOK1;
     elif num == 2:
-        CODEBOOK.setCodebook(2);
+        CODEBOOK = CODEBOOK2;
+    elif num == 3:
+        CODEBOOK = CODEBOOK3;
 
 
 def bin2dec(binary):

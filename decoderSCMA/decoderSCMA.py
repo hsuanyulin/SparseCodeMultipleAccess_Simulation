@@ -1,7 +1,6 @@
 
 import config
 import codebook64 as CODEBOOK
-import encoderConfig
 import math
 import numpy as np
 
