@@ -11,7 +11,8 @@ import math
 import matplotlib.pyplot as plt
 
 codebooks = [1];
-numRounds = 10;
+numRounds = np.zeros(9,dtype = np.integer);
+numRounds += 10;
 
 
 def getA_noise(SNR, A_signal):
@@ -41,7 +42,7 @@ for index, codebookIndex in enumerate(codebooks):
         difference = 0;
         SER[0][iSNR] = SNR;
 
-        for i in range(numRounds):
+        for i in range(numRounds[iSNR]):
             timeE = 0;
             encoder.setCodebook(codebookIndex);
             encoder.randomInputGenerator();
@@ -67,6 +68,6 @@ for index, codebookIndex in enumerate(codebooks):
                 #print("Round",i,"Symbol_error",timeE);
             difference += timeE;
 
-        SER[1][iSNR] = difference*1./numRounds/6.;
+        SER[1][iSNR] = difference*1./numRounds[iSNR]/6.;
         print("Symbol_error",SER[1][iSNR]);
     plotSER(SER);

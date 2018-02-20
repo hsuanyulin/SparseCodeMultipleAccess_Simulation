@@ -93,6 +93,9 @@ def getCodeword(userNum,symbol):
     codeword = codewords[:,symbol]
     return codeword;
 
+def getCodewords(userNum):
+    return CODEBOOK.USERS[userNum];
+
 def codeWordSize():
     return CODEBOOK.USERS[1].shape[1];
 
