@@ -3,55 +3,67 @@ import config
 import codebook64 as CODEBOOK
 import math
 import numpy as np
+import itertools
 
+eta_k = [];
+epsilon_j = [];
+combination = [];
 class _DecoderHelper():
 
-    def getMessage(self, k, j,codewords):
-        eta_k = config.factorGraph[k];
+    def buildEta_k(self, factorGraph):
+        global eta_k;
+        eta_k = [];
+        for k in range(factorGraph.shape[0]):
+            temp = [];
+            for i,vNode in enumerate(factorGraph[k]):
+                if vNode == 1:
+                    temp.append(i+1);
+            eta_k.append(temp);
+    def buildEpsilon_j(self, factorGraph):
+        global epsilon_j;
+        epsilon_j = [];
+        for j in range(factorGraph.shape[1]):
+            temp = [];
+            for i,fNode in enumerate(factorGraph[:,j]):
+                if fNode == 1:
+                    temp.append(i+1);
+            epsilon_j.append(temp);
+
+
+    def getMessage(self, k, j, codewords):
         sigma_x = 0;
-        for i, vNode in enumerate(eta_k):
-            if vNode == 1:
-                #print("codewords",CODEBOOK.getCodeword(i+1, codewords[i])[k]);
-                sigma_x += CODEBOOK.getCodeword(i+1, codewords[i])[k];
+        for i, j_th in enumerate(eta_k[k]):
+            #print("codewords",CODEBOOK.getCodeword(i+1, codewords[i])[k]);
+            sigma_x += CODEBOOK.getCodeword(j_th, codewords[j_th-1])[k];
         dividend = config.resourceLayer[k]-sigma_x;
         return np.exp(-(dividend*dividend.conjugate())/(config.sigma**2))
 
     def productSequencev_f(self, k, j, codewords):
-        eta_k = config.factorGraph[k];
         pi_Ev_f = 1;
-        for i, vNode in enumerate(eta_k):
-            if vNode == 1 and i != j:
-                pi_Ev_f *= config.Ev_f[k, i, codewords[i].astype(int)];
+        for i, j_th in enumerate(eta_k[k]):
+            if j_th != j:
+                pi_Ev_f *= config.Ev_f[k, j_th-1, codewords[j_th-1].astype(int)];
         return pi_Ev_f;
 
     def getEf_v(self, k, j, cw):
-        eta_k = config.factorGraph[k];
-        if eta_k[j] != 1:
+        if eta_k[k].count(j) < 1:
+            print("no j");
             return 0;
         update = 0;
         codewords = np.zeros(shape=(CODEBOOK.userNum(),1),dtype=np.integer);
-        index_A = None;
-        index_B = None;
 
         # initiate codewords
-        for i, vNode in enumerate(eta_k):
-            if vNode == 1:
-                if i == j:
-                    codewords[i] = cw;
-                else:
-                    if(index_A is None):
-                        index_A = i;
-                    else:
-                        index_B = i;
-                    codewords[i] = 0;
-        while codewords[index_A] < 4:
-            while codewords[index_B] < 4:
-                message = self.getMessage(k, j,codewords);
-                product = self.productSequencev_f(k,j,codewords);
-                update += message*product;
-                codewords[index_B] += 1;
-            codewords[index_B] = 0;
-            codewords[index_A] += 1;
+        codewords[j-1] = cw;
+        global combination;
+        for i, element in enumerate(combination):
+            temp = list(element);
+            for inner_i, j_th in enumerate(eta_k[k]):
+                #print(j_th,j);
+                if j_th != j:
+                    codewords[j_th-1] = temp.pop();
+            message = self.getMessage(k, j, codewords);
+            product = self.productSequencev_f(k,j,codewords);
+            update += message*product;
 
         #difference = np.absolute(codewords[index_A]-encoderConfig.userSymbols[index_A]);
         #difference += np.absolute(codewords[index_B]-encoderConfig.userSymbols[index_B]);
@@ -119,15 +131,22 @@ class _DecoderHelper():
         return normalizedProduct;
 
 DECODERHELPER = _DecoderHelper();
+def init():
+    DECODERHELPER.buildEta_k(config.factorGraph);
+    DECODERHELPER.buildEpsilon_j(config.factorGraph);
+    global combination;
+    combination = list(itertools.product(range(config.numCodeWords), repeat=len(eta_k[0])-1));
+
+
 def messagePassing():
     # update message from Function Node to Variable Node
     #print("********Info from vNode to fNode********")
 
     for k in range(config.factorGraph.shape[0]):
-        for j in range(config.factorGraph.shape[1]):
+        for j, j_th in enumerate(eta_k[k]):
             for index in range(config.numCodeWords):
-                config.Ef_v[k,j,index] = DECODERHELPER.getEf_v(k,j,index);
-                #print(k,j,index,config.Ef_v[k,j,index]);
+                config.Ef_v[k,j_th-1,index] = DECODERHELPER.getEf_v(k,j_th,index);
+                #print(k,j_th,index,config.Ef_v[k,j_th-1,index]);
     # update message from V Node to F Node
     #print("********Info from fNode to vNode********")
     for j in range(config.factorGraph.shape[1]):
@@ -135,6 +154,7 @@ def messagePassing():
             config.Ev_f[k,j,:] = DECODERHELPER.getEv_f(k,j);
             #print("userSymbols",encoderConfig.userSymbols[j]);
             #print("final",k,j,config.Ev_f[k,j,:]);
+
 def iterativeMPA(iteration):
     for i in range(iteration):
         messagePassing();

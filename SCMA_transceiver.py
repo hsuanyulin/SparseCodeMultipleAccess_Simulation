@@ -32,7 +32,7 @@ SNRList = np.arange(1, 10, 1);
 A_signal = 1.;
 A_noise = 1.;
 
-
+decoderSCMA.init();
 for index, codebookIndex in enumerate(codebooks):
     print("********* CODEBOOK ",codebookIndex," ********");
     global SNR, A_signal, A_noise;
@@ -53,6 +53,7 @@ for index, codebookIndex in enumerate(codebooks):
             A_noise = getA_noise(SNR, A_signal);
             awgn = awgn/getMagnitude(awgn)*A_noise;
             config.resourceLayer = awgn + encoderConfig.finalInput[0];
+
 
             decoderSCMA.iterativeMPA(10);
             decoderSCMA.estimateSymbol();

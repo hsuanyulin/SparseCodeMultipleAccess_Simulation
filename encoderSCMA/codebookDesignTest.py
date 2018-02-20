@@ -28,7 +28,7 @@ def printY_k():
         user5 = user2*(1/3*(2**0.5)*(e**(135j/180*pi)))
         user6 = user4*(1/3*(2**0.5)*(e**(135j/180*pi)))
         print(user1, user2, user3)
-        combination = list(itertools.product(user1, user2, user3))
+        combination = list(itertools.product(user1, user2, user3, user4 ))
         #print(np.array(combination).shape)
         y_k = np.array(np.sum(combination,axis=1).tolist());
         ax = fig.add_subplot(1,1,1);

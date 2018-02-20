@@ -101,3 +101,6 @@ def codewordBits():
 
 def userNum():
     return 6;
+
+#CODEBOOK.printConstellation()
+#CODEBOOK.printY_k()
