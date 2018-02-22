@@ -12,7 +12,9 @@ import matplotlib.pyplot as plt
 
 codebooks = [1];
 numRounds = np.zeros(9,dtype = np.integer);
-numRounds += 10;
+numRounds += 1000;
+for i, ele in enumerate(numRounds):
+    numRounds[i] = 100*10**(2**(i//3))
 
 
 def getA_noise(SNR, A_signal):
@@ -41,6 +43,7 @@ for index, codebookIndex in enumerate(codebooks):
     for iSNR,SNR in enumerate(SNRList):
         difference = 0;
         SER[0][iSNR] = SNR;
+        iterations = 0;
 
         for i in range(numRounds[iSNR]):
             timeE = 0;
@@ -56,7 +59,7 @@ for index, codebookIndex in enumerate(codebooks):
             config.resourceLayer = awgn + encoderConfig.finalInput[0];
 
 
-            decoderSCMA.iterativeMPA(10);
+            iterations += decoderSCMA.iterativeMPA(10);
             decoderSCMA.estimateSymbol();
                 #print(np.transpose(config.EstimatedSymbols));
                 #print(np.transpose(encoderConfig.userSymbols));
@@ -69,5 +72,8 @@ for index, codebookIndex in enumerate(codebooks):
             difference += timeE;
 
         SER[1][iSNR] = difference*1./numRounds[iSNR]/6.;
+        print("SNR",SER[0][iSNR]);
+        print("Total_rounds",numRounds[iSNR]);
         print("Symbol_error",SER[1][iSNR]);
+        print("iterations",iterations/numRounds[iSNR]);
     plotSER(SER);

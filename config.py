@@ -14,7 +14,7 @@ EstimatedCodewords = np.empty(shape=codewordsShape,dtype=np.complex_)
 
 shapeE = factorGraph.shape;
 shapeE = np.append(shapeE, numCodeWords);
-Ev_f = np.ones(shapeE,dtype=np.complex)/numCodeWords;
+Ev_f = np.ones(shapeE,dtype=np.integer)/numCodeWords;
 Ef_v = np.zeros(shapeE,dtype=np.complex);
 shapeProb = np.array([factorGraph.shape[1],numCodeWords]);
 probabilityX = np.ones(shapeProb)/numCodeWords;

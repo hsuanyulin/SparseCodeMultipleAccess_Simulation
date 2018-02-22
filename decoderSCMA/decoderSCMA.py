@@ -4,6 +4,7 @@ import codebook64 as CODEBOOK
 import math
 import numpy as np
 import itertools
+import copy
 
 eta = [];
 epsilon = [];
@@ -95,31 +96,43 @@ def init():
 def messagePassing():
     # update message from Function Node to Variable Node
     #print("********Info from vNode to fNode********")
-
     for k in range(config.factorGraph.shape[0]):
         for j, j_th in enumerate(eta[k]):
             for index in range(config.numCodeWords):
                 config.Ef_v[k,j_th-1,index] = DECODERHELPER.getEf_v(k,j_th,index);
-                #print(k,j_th,index,config.Ef_v[k,j_th-1,index]);
+
+            #    if k == 0:
+            #        print(k,j_th,index,config.Ef_v[k,j_th-1,index]);
+
     # update message from V Node to F Node
     #print("********Info from fNode to vNode********")
     for j in range(config.factorGraph.shape[1]):
         for k, k_th in enumerate(epsilon[j]):
             config.Ev_f[k_th-1,j,:] = DECODERHELPER.getEv_f(k_th,j);
-            #print("userSymbols",encoderConfig.userSymbols[j]);
-            #print("final",k,j,config.Ev_f[k,j,:]);
+            #if j == 0:
+            #    if k_th == 1:
+            #        print("userSymbols",encoderConfig.userSymbols[j]);
+            #        print("estimateSymbols",config.EstimatedSymbols[j]);
+            #        print("final",k_th,j,config.Ev_f[k_th-1,j,:]);
+            #    elif k_th == 3:
+            #        print("final",k_th,j,config.Ev_f[k_th-1,j,:]);
+
 
 def iterativeMPA(iteration):
-    estimateSymbol()
     iterationThreshold = 0;
     temp = [];
+    iterationEnd = 0;
     for i in range(iteration):
+        iterationEnd = copy.copy(i)
+        estimateSymbol()
         if iterationThreshold > 2:
             break;
-        temp = config.EstimatedSymbols;
         messagePassing();
         if np.allclose(temp, config.EstimatedSymbols):
             iterationThreshold += 1;
+        temp = copy.copy( config.EstimatedSymbols);
+    #print("iteration end", iterationEnd)
+    return iterationEnd;
 
 def estimateSymbol():
     for j in range(config.factorGraph.shape[1]):
