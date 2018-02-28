@@ -38,37 +38,46 @@ class _DecoderHelper():
             epsilon.append(temp);
 
     def getMessage(self, k, j, cw):
+
         combination = np.sum(self.getCombination(k,j),axis=1)+CODEBOOK.getCodeword(j, cw)[k];
-        dividend = config.resourceLayer[k]-combination;
+        resourceK = np.reshape(config.resourceLayer[:,k], (config.resourceLayer[:,k].shape[0],1))
+        resourceK = np.repeat(resourceK, 16, axis=1);
+
+        dividend = resourceK-combination;
 
         return np.exp(-(dividend*dividend.conjugate())/(config.sigma**2))
 
     def productSequencev_f(self, k, j, cw):
-        usersProb = []
+        usersProb = [];
         for i, user in enumerate(eta[k]):
             if user != j:
-                usersProb.append(config.Ev_f[k, user-1]);
-        return np.prod(list(itertools.product(*usersProb)),axis=1)
+                usersProb.append(config.Ev_f[:,k, user-1].transpose());
+        usersProb = np.asarray(usersProb);
+        #print("itertools userProb", usersProb.shape)
+        #usersProb = usersProb.transpose();
+        #print("itertools userProb", usersProb.shape)
+        #print(np.asarray(list(itertools.product(*usersProb))).shape)
+        return np.prod(list(itertools.product(*usersProb)),axis=1).transpose()
 
     def getEf_v(self, k, j, cw):
-        return np.sum(self.getMessage(k, j, cw)*self.productSequencev_f(k,j,cw));
+        return np.sum(self.getMessage(k, j, cw)*self.productSequencev_f(k,j,cw),axis=1);
 
 
     def productSequencef_v(self,k,j):
-        resourcesProb = np.ones(config.numCodeWords)
+        resourcesProb = np.ones(shape=(config.numSymbols,config.numCodeWords),dtype = np.float)
         for i, resource in enumerate(epsilon[j]):
             if resource != k:
-                resourcesProb = resourcesProb*config.Ef_v[resource-1,j]
+                resourcesProb = resourcesProb*config.Ef_v[:,resource-1,j]
         return resourcesProb
 
     def All_productSequencef_v(self,j):
-        resourcesProb = np.ones(config.numCodeWords)
+        resourcesProb = np.ones(shape=(config.numSymbols,config.numCodeWords))
         for i, resource in enumerate(epsilon[j]):
-                resourcesProb = resourcesProb*config.Ef_v[resource-1,j]
+                resourcesProb = resourcesProb*config.Ef_v[:,resource-1,j]
         return resourcesProb
 
     def magnitude(self,v):
-        return math.sqrt(sum(np.absolute(v[i])**2 for i in range(len(v))))
+        return np.sqrt(np.sum(np.square(np.absolute(v)),axis=1));
 
     def add(u, v):
         return [ u[i]+v[i] for i in range(len(u)) ]
@@ -80,12 +89,14 @@ class _DecoderHelper():
         return sum(u[i]*v[i] for i in range(len(u)))
 
     def normalize(self,v):
-        vmag = self.magnitude(v);
-        return v/vmag;
+        vmag = np.sum(np.absolute(v),axis=1);
+        v = v / vmag[:,None];
+        return v;
 
     def getEv_f(self,k, j):
         normalizedProduct = self.normalize(self.productSequencef_v(k,j));
         #print("********after normalization********")
+        #print(normalizedProduct,k,j)
         return normalizedProduct;
 
 DECODERHELPER = _DecoderHelper();
@@ -95,27 +106,15 @@ def init():
 
 def messagePassing():
     # update message from Function Node to Variable Node
-    #print("********Info from vNode to fNode********")
     for k in range(config.factorGraph.shape[0]):
         for j, j_th in enumerate(eta[k]):
             for index in range(config.numCodeWords):
-                config.Ef_v[k,j_th-1,index] = DECODERHELPER.getEf_v(k,j_th,index);
-
-            #    if k == 0:
-            #        print(k,j_th,index,config.Ef_v[k,j_th-1,index]);
+                config.Ef_v[:,k,j_th-1,index] = DECODERHELPER.getEf_v(k,j_th,index);
 
     # update message from V Node to F Node
-    #print("********Info from fNode to vNode********")
     for j in range(config.factorGraph.shape[1]):
         for k, k_th in enumerate(epsilon[j]):
-            config.Ev_f[k_th-1,j,:] = DECODERHELPER.getEv_f(k_th,j);
-            #if j == 0:
-            #    if k_th == 1:
-            #        print("userSymbols",encoderConfig.userSymbols[j]);
-            #        print("estimateSymbols",config.EstimatedSymbols[j]);
-            #        print("final",k_th,j,config.Ev_f[k_th-1,j,:]);
-            #    elif k_th == 3:
-            #        print("final",k_th,j,config.Ev_f[k_th-1,j,:]);
+            config.Ev_f[:,k_th-1,j,:] = DECODERHELPER.getEv_f(k_th,j);
 
 
 def iterativeMPA(iteration):
@@ -123,17 +122,18 @@ def iterativeMPA(iteration):
     temp = [];
     iterationEnd = 0;
     for i in range(iteration):
+        temp = copy.copy( config.EstimatedSymbols);
         iterationEnd = copy.copy(i)
-        estimateSymbol()
+        #print("estimateSymbol",config.EstimatedSymbols)
         if iterationThreshold > 2:
             break;
         messagePassing();
+        estimateSymbol();
         if np.allclose(temp, config.EstimatedSymbols):
             iterationThreshold += 1;
-        temp = copy.copy( config.EstimatedSymbols);
     #print("iteration end", iterationEnd)
     return iterationEnd;
 
 def estimateSymbol():
     for j in range(config.factorGraph.shape[1]):
-        config.EstimatedSymbols[j] = np.argmax(DECODERHELPER.All_productSequencef_v(j));
+        config.EstimatedSymbols[j] = np.argmax(DECODERHELPER.All_productSequencef_v(j),axis=1);

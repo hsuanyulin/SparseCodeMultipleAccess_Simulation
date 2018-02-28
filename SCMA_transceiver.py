@@ -11,16 +11,19 @@ import math
 import matplotlib.pyplot as plt
 
 codebooks = [1];
-numRounds = np.zeros(9,dtype = np.integer);
-numRounds += 1000;
-for i, ele in enumerate(numRounds):
-    numRounds[i] = 100*10**(2**(i//3))
+#numRounds = np.zeros(9,dtype = np.integer);
+#numRounds += 1000;
+#for i, ele in enumerate(numRounds):
+#    numRounds[i] = 100*10**(2**(i//3))
 
 
 def getA_noise(SNR, A_signal):
-    return math.sqrt(A_signal/(10.**(SNR/10.)))
+    mag = np.zeros(shape=(A_signal.shape[0]));
+    for i,ele in enumerate(A_signal):
+        mag[i] = math.sqrt(ele/(10.**(SNR/10.)))
+    return mag;
 def getMagnitude(v):
-    return math.sqrt(sum(np.absolute(v[i])**2 for i in range(len(v))))
+    return np.sqrt(np.sum(np.square(np.absolute(v)),axis=1));
 def plotSER(SER):
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1);
@@ -31,7 +34,7 @@ def plotSER(SER):
 def getDB(value):
     return 10*math.log(value,10);
 
-SNRList = np.arange(1, 10, 1);
+SNRList = np.arange(5, 10, 1);
 A_signal = 1.;
 A_noise = 1.;
 
@@ -45,35 +48,36 @@ for index, codebookIndex in enumerate(codebooks):
         SER[0][iSNR] = SNR;
         iterations = 0;
 
-        for i in range(numRounds[iSNR]):
-            timeE = 0;
-            encoder.setCodebook(codebookIndex);
-            encoder.randomInputGenerator();
-            encoder.bin2codewords(encoderConfig.userInput);
-            #error
-            awgn = (np.random.normal(0., config.sigma, config.resourceLayer.shape)+1j*np.random.normal(0., config.sigma, config.resourceLayer.shape));
 
-            A_signal = getMagnitude(encoderConfig.finalInput[0]);
-            A_noise = getA_noise(SNR, A_signal);
-            awgn = awgn/getMagnitude(awgn)*A_noise;
-            config.resourceLayer = awgn + encoderConfig.finalInput[0];
+        timeE = 0;
+        encoder.setCodebook(codebookIndex);
+        encoder.randomInputGenerator();
+        #print("finalInput shape", encoderConfig.finalInput.shape)
+
+        #error
+        awgn = (np.random.normal(0., config.sigma, encoderConfig.finalInput.shape)
+                +1j*np.random.normal(0., config.sigma, encoderConfig.finalInput.shape));
+
+        A_signal = getMagnitude(encoderConfig.finalInput);
+        noiseAdjust = getA_noise(SNR, A_signal)/getMagnitude(awgn);
+
+        awgn = awgn* noiseAdjust[:,None];
 
 
-            iterations += decoderSCMA.iterativeMPA(10);
-            decoderSCMA.estimateSymbol();
-                #print(np.transpose(config.EstimatedSymbols));
-                #print(np.transpose(encoderConfig.userSymbols));
-            for ele in np.absolute(config.EstimatedSymbols-encoderConfig.userSymbols):
-                if ele != 0:
-                    timeE += 1;
-            #if timeE != 0:
-                #print("AWGN", getMagnitude(awgn));
-                #print("Round",i,"Symbol_error",timeE);
-            difference += timeE;
+        config.resourceLayer = awgn + encoderConfig.finalInput;
+        #print("resource layer")
+        #print(config.resourceLayer)
 
-        SER[1][iSNR] = difference*1./numRounds[iSNR]/6.;
+
+        iterations += decoderSCMA.iterativeMPA(10);
+        decoderSCMA.estimateSymbol();
+
+        timeE = np.count_nonzero(config.EstimatedSymbols-encoderConfig.userSymbols);
+        difference += timeE;
+
+        SER[1][iSNR] = difference*1./config.numSymbols/6.;
         print("SNR",SER[0][iSNR]);
-        print("Total_rounds",numRounds[iSNR]);
+        print("Total_rounds",config.numSymbols);
         print("Symbol_error",SER[1][iSNR]);
-        print("iterations",iterations/numRounds[iSNR]);
+        print("iterations",iterations);
     plotSER(SER);
